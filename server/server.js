@@ -312,6 +312,82 @@ app.get('/api/exchanges/my', (req, res) => {
   res.json(myExchanges);
 });
 
+app.put('/api/items/:id', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const { userId, category, mysteryTags, realName, description, contact } = req.body;
+
+  if (!userId) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(400).json({ error: '缺少用户ID' });
+  }
+
+  const items = readItems();
+  const itemIndex = items.findIndex(i => i.id === id);
+
+  if (itemIndex === -1) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(404).json({ error: '物品不存在' });
+  }
+
+  const item = items[itemIndex];
+
+  if (item.ownerId !== userId) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(403).json({ error: '无权限编辑' });
+  }
+
+  if (item.status !== 'available') {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(400).json({ error: '已交换的盲盒无法编辑' });
+  }
+
+  if (category) item.category = category;
+  if (mysteryTags) item.mysteryTags = JSON.parse(mysteryTags);
+  if (realName) item.realName = realName;
+  if (description !== undefined) item.description = description;
+  if (contact) item.contact = contact;
+
+  if (req.file) {
+    const oldOriginalFilePath = path.join(UPLOADS_DIR, path.basename(item.image));
+    const oldBlurredFilePath = item.blurredImage
+      ? path.join(UPLOADS_DIR, path.basename(item.blurredImage))
+      : null;
+
+    let newBlurredImagePath;
+    try {
+      newBlurredImagePath = await generateBlurredImage(req.file.path);
+    } catch (err) {
+      console.error('生成模糊图片失败:', err);
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+      return res.status(500).json({ error: '图片处理失败，请换一张图片重试' });
+    }
+
+    try {
+      if (fs.existsSync(oldOriginalFilePath)) fs.unlinkSync(oldOriginalFilePath);
+    } catch (e) { console.error('删除旧原图失败:', e); }
+
+    try {
+      if (oldBlurredFilePath && fs.existsSync(oldBlurredFilePath)) fs.unlinkSync(oldBlurredFilePath);
+    } catch (e) { console.error('删除旧模糊图失败:', e); }
+
+    item.image = '/uploads/' + req.file.filename;
+    item.blurredImage = newBlurredImagePath;
+  }
+
+  items[itemIndex] = item;
+  writeItems(items);
+
+  res.json(item);
+});
+
 app.delete('/api/items/:id', (req, res) => {
   const { id } = req.params;
   const { userId } = req.query;

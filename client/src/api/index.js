@@ -30,6 +30,12 @@ export function createItem(formData) {
   }).then(res => res.data)
 }
 
+export function updateItem(id, formData) {
+  return api.put(`/items/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(res => res.data)
+}
+
 export function deleteItem(id, userId) {
   return api.delete(`/items/${id}`, { params: { userId } }).then(res => res.data)
 }

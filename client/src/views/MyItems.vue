@@ -47,6 +47,12 @@
             <router-link :to="'/item/' + item.id" style="flex:1;">
               <button class="btn btn-secondary" style="width:100%;">查看详情</button>
             </router-link>
+            <router-link
+              v-if="item.status === 'available'"
+              :to="'/edit/' + item.id"
+            >
+              <button class="btn btn-primary">编辑</button>
+            </router-link>
             <button
               v-if="item.status === 'available'"
               class="btn btn-danger"

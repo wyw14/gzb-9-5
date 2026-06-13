@@ -4,13 +4,15 @@ import Publish from '../views/Publish.vue'
 import MyItems from '../views/MyItems.vue'
 import ItemDetail from '../views/ItemDetail.vue'
 import MyExchanges from '../views/MyExchanges.vue'
+import EditItem from '../views/EditItem.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/publish', name: 'Publish', component: Publish },
   { path: '/my-items', name: 'MyItems', component: MyItems },
   { path: '/my-exchanges', name: 'MyExchanges', component: MyExchanges },
-  { path: '/item/:id', name: 'ItemDetail', component: ItemDetail, props: true }
+  { path: '/item/:id', name: 'ItemDetail', component: ItemDetail, props: true },
+  { path: '/edit/:id', name: 'EditItem', component: EditItem, props: true }
 ]
 
 const router = createRouter({
